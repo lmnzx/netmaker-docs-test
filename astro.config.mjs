@@ -5,9 +5,6 @@ import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi'
 
 // https://astro.build/config
 export default defineConfig({
-    redirects: {
-        '/' : '/guides/example'
-    },
 	integrations: [
 		starlight({
             logo: {

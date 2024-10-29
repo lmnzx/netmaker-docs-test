@@ -1,0 +1,191 @@
+---
+title: Quick Install
+description: Fast and Easy Setup for Secure Network Management
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+
+Welcome to the Netmaker Quick Install Guide!
+<br/>
+This guide will help you set up Netmaker quickly and efficiently, whether you're using a virtual machine or a physical server. We'll cover all the essential steps, including prerequisites, installation, and configuring firewall rules. By the end of this guide, you'll have a fully operational Netmaker server, optimized for secure network management using WireGuard.
+
+## Prerequisites
+### Operating System & Server Requirements
+All components of Netmaker can be run on a single server (Virtual Machine or Bare Metal). Here are setup specifications:
+
+- __Ubuntu 24.04.__
+
+- __Public static IP address__ (required for communication between nodes).
+
+- __Domain name__ ( preferred )  (e.g., netmaker.example.com ) with DNS management access.
+
+- __System resources :__
+
+    - __Minimum:__ 1 GB RAM, 1 CPU, 2 GB storage.
+
+    - __Recommended__ (production): 2 GB RAM, 2 CPU, 10 GB storage.
+
+- __Recommendation__ : Use Netmaker in a dedicated network for optimal performance.
+
+### Recommended Cloud Providers
+- __[DigitalOcean](https://www.digitalocean.com/)__ (preferred)
+- __[Linode](https://www.linode.com/)__
+- __[KeepSec](https://www.keepsec.ca/)__
+- __[AWS]() , [Azure]() , [GCP]()__
+
+> Avoid using Oracle Cloud due to known issues with network configuration.
+
+### Netmaker Firewall Rules
+Ensure that the firewall settings for Netmaker are properly configured on both the VM and your cloud security groups (e.g., AWS, GCP) or on your router/firewall appliance:
+
+- __80, 443 (TCP):__ For Caddy (serving the UI, REST API, and MQTT broker)
+
+- __51821 (UDP):__ For WireGuard traffic (__default Netclient port__)
+
+- __51821 (TCP):__ Utilized for endpoint detection, allowing peers in the same VPC to connect via private IPs instead of public ones, improving efficiency and reducing latency.
+
+- __53 (TCP and UDP):__ If you set the CoreDNS container, that comes with the Netmaker installation, to ‘host’ your domain name resolution needs.
+
+- __8085 (Exporter Pro):__ If you are building a Pro server, you need this port open.
+
+- __1883, 8883 8083, 18083 (if using EMQX):__ We use two different types of brokers. There is Mosquitto or EMQX. Mosquitto is our default offering which uses ports 8883 and 1883. If you are setting up EMQX, all four ports mentioned need to be opened for MQTT, SSL MQTT, web sockets, and the EMQX dashboard/REST API.
+
+Firewall Commands:
+```bash
+# Allow HTTPS traffic for secure web connections (Caddy, Dashboard, REST API)
+sudo ufw allow 443/tcp
+
+# Allow HTTP traffic for Caddy, which uses port 80 to generate SSL/TLS certificates automatically 
+sudo ufw allow 80/tcp
+
+# Allow WireGuard VPN traffic on UDP port 51821 for secure peer communication 
+sudo ufw allow 51821/udp
+
+# Allow TCP on port 51821 for endpoint detection 
+sudo ufw allow 51821/tcp
+
+#optional: only when hosting DNS on the Netmaker server
+sudo ufw allow 53
+
+# Optional: Necessary for building a Pro server
+sudo ufw allow 8085/tcp
+
+# Optional: When setting up EMQX
+sudo ufw allow 1883/tcp
+sudo ufw allow 8883/tcp
+sudo ufw allow 8083/tcp
+sudo ufw allow 18083/tcp
+
+# Enable UFW if it is not already enabled
+sudo ufw enable
+```
+It’s important to make sure that the server isn’t blocking traffic forwarding, as some providers may have this setting enabled by default. To guarantee the forwarding of traffic:
+
+```bash
+iptables --policy FORWARD ACCEPT
+```
+
+### Netclient Firewall Rules
+The server deploys a Netclient
+
+On Linux, these necessary ports are needed to be opened:
+
+UDP and TCP ports 51821-51830 for inbound and outbound (based on your client’s listen port running on the machine)
+
+TCP port 443 for outbound
+
+UDP ports 19302 & 3478 for STUN outbound requests
+
+For advanced use cases, you might need to view your device’s firewall logs, or in the case of Netclients behind a NAT, your Firewall-Appliance/Router’s firewall logs. Look for blocked traffic coming in and out having origin/destination IPs of your devices.
+
+For example, in UFW you may do:
+
+```bash
+#set the firewall to log only the blocked traffic
+ufw logging low
+
+#clear out the current logs
+cat /dev/null | sudo tee /var/log/ufw.log
+
+#reload ufw
+ufw reload
+
+#filter the logs
+cat /var/log/ufw.log | grep -e <netmaker server IP> -e <other nodes' IPs>
+```
+### Domain
+Your server will host several services (netmaker server, UI, etc.) each of which requires a dedicated, public subdomain. Here are some recommendations:
+
+Use a publicly owned domain (e.x. example.com , mysite.biz )
+
+Designate a subdomain (e.g. *. netmaker.example.com ) for netmaker’s services (e.g. dashboard.netmaker.example.com, api.netmaker.example.com )
+
+Make sure you have permission and access to modify DNS records for your domain (e.x: Route53)
+
+> Important Note on Cloudflare: Many users utilize Cloudflare, but its proxying of connections can interfere with MQ functionality. You can disable this feature in the Cloudflare DNS dashboard. If you plan to set up your Netmaker server with Cloudflare DNS, be aware that the Cloudflare proxy configuration may lead to issues with Netmaker. Currently, Netmaker does not offer guidance for resolving these problems.
+
+## Quick Install Script
+Execute the nm-quick script for a self-hosted or on-premises setup:
+
+```bash
+sudo wget -qO /root/nm-quick.sh https://raw.githubusercontent.com/gravitl/netmaker/master/scripts/nm-quick.sh && sudo chmod +x /root/nm-quick.sh && sudo /root/nm-quick.sh
+```
+>IMPORTANT: Notes on Installation - Due to the high volume of installations, the auto-generated domain has been rate-limited by the certificate provider. For this reason, we strongly recommend using your domain. Using the auto-generated domain may lead to a failed installation due to rate limiting.
+
+>IMPORTANT: From v0.22.0 the install script will install PRO version of netmaker with a 14-day free trial, for you to try out full capabilities of netmaker.
+
+## Integrating OAuth
+Users are also allowed to join a Netmaker server via OAuth. They can do this by clicking the “Login with SSO” button on the dashboard’s login page. Check out the integrating oauth docs .
+
+## After the trial period ends
+1.  If you wish to continue using PRO:
+    - Check these steps to obtain pro license: https://docs.netmaker.io/docs/server-installation/netmaker-professional-setup
+    - Run ```/root/nm-quick.sh -u```
+
+2.  If you wish to downgrade to the community version
+    - Run ```bash/root/nm-quick.sh -d```
+
+To get started the easiest way, visit our SaaS platform to set up a netmaker server with just a few clicks https://app.netmaker.io
+
+## Post-Installation: Accessing the Dashboard & Creating a Super Admin
+Once you’ve successfully completed the Quick Install, it's time to log into the Netmaker dashboard and create a Super Admin. Follow these steps to get started:
+
+<Steps>
+
+1.  Access the Netmaker Dashboard
+    - Open a web browser and navigate to the URL of your Netmaker dashboard.
+        - If you're using a custom domain, it will look like https://dashboard.example.com .
+        - If you opted for the auto-generated domain, the URL will follow the format provided during installation (e.g., `https://dashboard.nm.<your-server-ip>.nip.io` ).
+
+2.  Log In
+    - On the login screen, use the initial admin credentials created during installation.
+
+3.  Create a Super Admin
+    - Once logged in, navigate to the User Management section in the left-hand sidebar.
+    - Click on Add a User : There are two ways to add users in Netmaker Professional:
+        - Basic Auth: Directly create users by specifying their username, password, and any groups or roles.
+        - User Invite: Send invitations via email (SMTP setup only required for self-hosted setup). Users receive a link to create their account with pre-assigned roles and groups.
+    - Fill in the required fields in case you selected Create a User :
+        - __Username__
+        - __Password__
+        - __Platform Access Level: Select Admin__
+    - Click __Create User__
+    - Fill in the required fields in case you selected __Invite a User__:
+        - __Email address(es)__
+        - __Platform Access Level:__ Select __Admin__
+    - Click __Create User Invite(s)__
+
+4.  Test the __Super Admin Access__
+    - Log out of the current session
+    - Log back in using the new Super Admin credentials
+    - Verify that you have access to all administrative features in the dashboard
+
+</Steps>
+
+## Next Steps
+Now that you have a basic understanding, here are a few resources to help you continue:
+
+- Getting Started with Netmaker : Follow this guide to set up your first Netmaker network and explore the platform's capabilities.
+
+- Use Case Guides : Discover practical use cases and step-by-step guides to configure Netmaker for various scenarios.

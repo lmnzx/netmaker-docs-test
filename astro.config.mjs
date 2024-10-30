@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi'
+import starlightThemeRapide from 'starlight-theme-rapide'
 
 // https://astro.build/config
 export default defineConfig({
@@ -13,9 +14,6 @@ export default defineConfig({
             },
             favicon: '/favicon.png',
             lastUpdated: true,
-            customCss: [
-                './src/styles/colors.css',
-            ],
             plugins: [
                 starlightOpenAPI([
                     {
@@ -24,12 +22,19 @@ export default defineConfig({
                         schema: 'https://raw.githubusercontent.com/gravitl/netmaker/refs/heads/master/swagger.yaml',
                     },
                 ]),
+                starlightThemeRapide(),
             ],
 			title: 'Netmaker Docs',
 			social: {
 				github: 'https://github.com/gravitl/netmaker/',
                 discord: 'https://discord.gg/zRb9Vfhk8A'
 			},
+            expressiveCode: {
+                themes: ['catppuccin-mocha', 'catppuccin-latte'],
+            },
+            customCss: [
+                './src/styles/colors.css',
+            ],
 			sidebar: [
 				{
 					label: 'Guides',

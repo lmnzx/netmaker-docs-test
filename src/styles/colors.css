@@ -1,5 +1,5 @@
-/* Dark mode colors. */
-:root {
+:root:is(:root),
+::backdrop:is(::backdrop) {
 	--sl-color-accent-low: #251d3e;
 	--sl-color-accent: #704dc7;
 	--sl-color-accent-high: #c9c2ee;
@@ -12,18 +12,18 @@
 	--sl-color-gray-6: #24233e;
 	--sl-color-black: #171723;
 }
-/* Light mode colors. */
-:root[data-theme='light'] {
-	--sl-color-accent-low: #d7d2f3;
-	--sl-color-accent: #714fca;
-	--sl-color-accent-high: #34275c;
-	--sl-color-white: #171723;
-	--sl-color-gray-1: #24233e;
-	--sl-color-gray-2: #353451;
-	--sl-color-gray-3: #555473;
-	--sl-color-gray-4: #8888a9;
-	--sl-color-gray-5: #c0c0d2;
-	--sl-color-gray-6: #ececfb;
-	--sl-color-gray-7: #f5f5fd;
-	--sl-color-black: #ffffff;
+
+:root[data-theme='light']:is(:root[data-theme='light']),
+[data-theme='light'] ::backdrop:is(::backdrop) {
+    --sl-color-accent-low: #d7d2f3;
+    --sl-color-accent: #714fca;
+    --sl-color-accent-high: #34275c;
+    --sl-color-white: #171723;
+    --sl-color-gray-1: #24233e;
+    --sl-color-gray-2: #353451;
+    --sl-color-gray-3: #555473;
+    --sl-color-gray-4: #8888a9;
+    --sl-color-gray-5: #c0c0d2;
+    --sl-color-gray-6: #ececfb;
+    --sl-color-black: #ffffff;
 }

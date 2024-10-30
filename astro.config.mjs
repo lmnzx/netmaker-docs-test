@@ -37,14 +37,12 @@ export default defineConfig({
             ],
 			sidebar: [
 				{
-					label: 'Guides',
-					items: [
-						{ label: 'Example Guide', slug: 'guides/example' },
-					],
+					label: 'About',
+					slug: 'about',
 				},
 				{
-					label: 'Reference',
-					autogenerate: { directory: 'reference' },
+					label: 'Architecture',
+					slug: 'architecture',
 				},
 				{
 					label: 'Server Installations',
